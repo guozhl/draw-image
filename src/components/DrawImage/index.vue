@@ -1,12 +1,12 @@
 <template>
   <section class="draw-image-box">
     <canvas ref="refCanvas" id="canvas" :width="imgWidth" :height="imgHeight" v-show="false"></canvas>
-    <img ref="refImage" id="image" :src="imgSrc" crossorigin="Anonymous" @load="_uploadImgLoad" v-show="false" />
+    <img ref="refImage" id="image" :src="imgSrc" crossorigin="Anonymous" @load="_imgLoad" v-show="false" />
     <vueCropper ref="cropper" :img="option.img"></vueCropper>
   </section>
 </template>
 <script>
-import { VueCropper } from 'vue-cropper'
+import { VueCropper } from 'vue-cropper';
 
 export default {
   name: 'DrawImage',
@@ -24,6 +24,16 @@ export default {
       type: String,
       default: ''
     },
+    // 图片格式
+    type: {
+      type: String,
+      default: 'image/png'
+    },
+    // 图片质量
+    quality: {
+      type: Number,
+      default: 1
+    }
   },
   data() {
     return {
@@ -37,25 +47,19 @@ export default {
       // img配置部分
       refImage: '',
       imgSrc: '',
-      // canvas宽高
-      canvasWidth: 0,
-      canvasHeight: 0,
       // Cropper 配置
       option: {
         img: '',
       },
-      // 裁剪框的坐标
-      cutPos: {},
-      // 图片坐标，放大缩小会变
-      imgPos: {},
       // 多次画图记录
       drawArray: [],
-      blobData: ''
+      blobData: '',
+      base64Data: '',
     }
   },
   watch: {
     editImgSrc(val) {
-      this.initDraw(val)
+      this.initDraw(val);
     },
   },
   mounted() {
@@ -67,49 +71,39 @@ export default {
   methods: {
     // 开始框选
     startDraw() {
-      this._startCrop()
+      this._startCrop();
     },
 
     // 结束框选
     stopDraw() {
-      this._canvasOnDraw(this.imgWidth, this.imgHeight)
-      this._stopCrop()
-      this._clearCrop()
+      this._canvasOnDraw();
+      this._stopCrop();
+      this._clearCrop();
     },
 
     initDraw(backUrl = this.cleanImgSrc) {
       this.option.img = backUrl;
-      this.imgSrc = backUrl
-      this.drawArray = []
-      // TODO
-      this.blobData = backUrl
-      this._stopCrop()
-      this._clearCrop()
+      this.imgSrc = backUrl;
+      this.drawArray = [];
+      // TODO 不要改变数据格式
+      this.blobData = backUrl;
+      this.base64Data = backUrl;
+      this._stopCrop();
+      this._clearCrop();
     },
 
     getBlobData() {
-      this.$emit('saveBlobData', this.blobData)
+      return this.blobData;
     },
 
-    _uploadImgLoad(e) {
+    getBase64Data() {
+      this.base64Data = this.domCanvas.toDataURL(this.type, this.quality);
+      return this.base64Data;
+    },
+
+    _imgLoad(e) {
       this.imgWidth = e.path[0].naturalWidth;
       this.imgHeight = e.path[0].naturalHeight;
-      this._setCanvasSize()
-    },
-
-    _setCanvasSize() {
-      try {
-        if (this.imgWidth >= this.imgHeight) {
-          this.canvasWidth = document.getElementsByClassName("draw-image-box")[0].offsetWidth
-          this.canvasHeight = (this.canvasWidth * this.imgHeight) / this.imgWidth
-        } else {
-          this.canvasHeight = document.getElementsByClassName("draw-image-box")[0].offsetHeight
-          this.canvasWidth = (this.canvasHeight * this.imgWidth) / this.imgHeight
-        }
-
-      } catch (error) {
-        console.log('_setCanvasSize', error)
-      }
     },
 
     // canvas绘图部分
@@ -127,60 +121,63 @@ export default {
         this.imgHeight
       );
 
-
-      this._getImgAxis()
-      this._getCropAxis()
+      // 获取截图框和图片放大的比例
+      let imgPos = this._getImgAxis();
+      let cutPos = this._getCropAxis();
 
       try {
-        let rate = (this.imgPos.y2 - this.imgPos.y1) / this.canvasHeight
-        let scale = this.imgWidth / this.canvasWidth
+        let rate = this.imgHeight / (imgPos.y2 - imgPos.y1);
 
-        let cutW = (this.cutPos.x2 - this.cutPos.x1) / rate
-        let cutH = (this.cutPos.y2 - this.cutPos.y1) / rate
+        let xxx = (cutPos.x1 - imgPos.x1) * rate;
+        let yyy = (cutPos.y1 - imgPos.y1) * rate;
 
-        let lll = (this.cutPos.x1 - this.imgPos.x1) / rate
-        let rrr = (this.cutPos.y1 - this.imgPos.y1) / rate
+        let cutW = (cutPos.x2 - cutPos.x1) * rate;
+        let cutH = (cutPos.y2 - cutPos.y1) * rate;
 
-        this.drawArray.push({ lll, rrr, cutW, cutH, scale })
+        this.drawArray.push({ xxx, yyy, cutW, cutH });
       } catch (error) {
-        console.log('计算坐标error', error)
+        console.log('计算坐标error', error);
       }
 
       // 画矩形
       this.ctxCanvas.strokeStyle = 'red';
       this.ctxCanvas.lineWidth = 10;
       this.drawArray.forEach(item => {
-        let { lll, rrr, cutW, cutH, scale } = item
-        this.ctxCanvas.strokeRect(lll * scale, rrr * scale, cutW * scale, cutH * scale);
+        let { xxx, yyy, cutW, cutH } = item || {};
+        /**
+         * 矩形起点的 x 轴坐标
+         * 矩形起点的 y 轴坐标
+         * 矩形的宽度。正值在右侧，负值在左侧
+         * 矩形的高度。正值在下，负值在上
+         */
+        this.ctxCanvas.strokeRect(xxx, yyy, cutW, cutH);
       })
       // 输出图片，替换
-      let url = ''
       this.domCanvas.toBlob((blob) => {
-        url = URL.createObjectURL(blob);
         this.blobData = blob;
-        this.option.img = url
-      }, 'image/jpeg', 1);
+        this.option.img = URL.createObjectURL(blob);
+      }, this.type, this.quality);
     },
 
     // 开始截图
     _startCrop() {
-      this.$refs.cropper.startCrop()
+      this.$refs.cropper.startCrop();
     },
     // 停止截图
     _stopCrop() {
-      this.$refs.cropper.stopCrop()
+      this.$refs.cropper.stopCrop();
     },
     // 清除截图
     _clearCrop() {
-      this.$refs.cropper.clearCrop()
+      this.$refs.cropper.clearCrop();
     },
     // 获取图片基于容器的坐标点
     _getImgAxis() {
-      this.imgPos = this.$refs.cropper.getImgAxis()
+      return this.$refs.cropper.getImgAxis();
     },
     // 获取截图框基于容器的坐标点
     _getCropAxis() {
-      this.cutPos = this.$refs.cropper.getCropAxis()
+      return this.$refs.cropper.getCropAxis();
     },
   }
 }
@@ -188,6 +185,6 @@ export default {
 <style scoped>
 .draw-image-box {
   width: 100%;
-  height: 800px;
+  height: 100%;
 }
 </style>
