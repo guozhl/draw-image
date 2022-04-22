@@ -85,7 +85,6 @@ export default {
       this.option.img = backUrl;
       this.imgSrc = backUrl;
       this.drawArray = [];
-      // TODO 不要改变数据格式
       this.blobData = backUrl;
       this.base64Data = backUrl;
       this._stopCrop();

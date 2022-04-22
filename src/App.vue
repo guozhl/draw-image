@@ -57,7 +57,7 @@ export default {
     },
     submitblob() {
       let blobData = this.$refs.drawImage.getBlobData();
-      this.resBlob = URL.createObjectURL(blobData);
+      this.resBlob = blobData instanceof Blob ? URL.createObjectURL(blobData) : blobData;
     },
     submitbase64() {
       let base64Data = this.$refs.drawImage.getBase64Data();
