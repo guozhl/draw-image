@@ -1,7 +1,16 @@
 {
   "name": "draw-image",
   "version": "0.1.0",
-  "private": true,
+  "description": "A plugin to clip and draw square on a picture by Vue",
+  "keywords": [
+    "vue",
+    "cropper",
+    "vue-cropper",
+    "vue-component",
+    "vue-cropper-component",
+    "canvas"
+  ],
+  "author": "guozl",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",

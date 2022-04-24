@@ -2,11 +2,11 @@
   <div id="app">
     <div class="drawbox">
       <div>
-        <button @click="startDraw">框选位置</button>
-        <button @click="stopDraw">结束框选</button>
-        <button @click="clearDraw">清除框选</button>
-        <button @click="submitblob">保 存 blob</button>
-        <button @click="submitbase64">保 存 base64</button>
+        <button @click="startDraw">startDraw</button>
+        <button @click="stopDraw">stopDraw</button>
+        <button @click="clearDraw">clearDraw</button>
+        <button @click="submitblob">save blob</button>
+        <button @click="submitbase64">save base64</button>
       </div>
       <div style="width: 500px; height: 800px;">
         <draw-image ref="drawImage" :editImgSrc="showPicUrl" :cleanImgSrc="pagePicUrl"></draw-image>
@@ -35,9 +35,8 @@ export default {
     return {
       showPicUrl: '',
       pagePicUrl: '',
-      editPic: 'https://techimg.ziroom.com/0458ec80-6ae4-4f72-a74a-7bb89ccb705e',
-      addPic: 'https://techimg.ziroom.com/f930fa53-67ea-4d91-bc02-dd1d8bf86688.jpg',
-      clearPic: 'https://techimg.ziroom.com/f930fa53-67ea-4d91-bc02-dd1d8bf86688.jpg',
+      editPic: 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fhbimg.huabanimg.com%2F9797222901bed0d659831893c259d77293a96b05568cd-DVB2A2_fw658&refer=http%3A%2F%2Fhbimg.huabanimg.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1653372629&t=2bdd272fdf9376b1a302f2a9465c27f5',
+      clearPic: 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fhbimg.huabanimg.com%2F9797222901bed0d659831893c259d77293a96b05568cd-DVB2A2_fw658&refer=http%3A%2F%2Fhbimg.huabanimg.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1653372629&t=2bdd272fdf9376b1a302f2a9465c27f5',
       resBlob: '',
       resBase64: ''
     }
