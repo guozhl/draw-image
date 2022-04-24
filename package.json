@@ -10,7 +10,13 @@
     "vue-cropper-component",
     "canvas"
   ],
-  "author": "guozl",
+  "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guozhl/draw-image.git"
+  },
+  "author": "guozhl",
+  "license": "ISC",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
